@@ -1,13 +1,18 @@
 package team22.com.homework4;
 
 import android.content.Intent;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.api.client.json.Json;
 import com.google.api.client.json.JsonParser;
 
@@ -20,56 +25,47 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class Text extends ActionBarActivity {
 
+    GoogleMap map;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_text);
     }
 
+    public void sendLocation(View view) throws MalformedURLException, IOException{
+       Intent intent = new Intent(this,MainActivity.class);
+       EditText text = (EditText) findViewById(R.id.location);
 
-
-    public String geocode(String addr){
-        HttpClient h = new DefaultHttpClient();
-        HttpGet res = new HttpGet(addr);
-        HttpResponse response;
-        String end = " ";
-        JSONObject j;
-
-
-        try {
-            response = h.execute(res);
-
-            HttpEntity ent = response.getEntity();
-            String entity = EntityUtils.toString(ent);
-            //InputStream in = ent.getContent();
-
-            j = new JSONObject(entity);
-            int Lat = (int) j.get("lat");
-            int Long = (int) j.get("lng");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-        return " ";
-    }
-    public void sendLocation(View view){
-        Intent intent = new Intent(this,MainActivity.class);
-        EditText text = (EditText) findViewById(R.id.location);
-        String message = text.getText().toString();
+     /*   //Http Request
+       String message = text.getText().toString();
         String address = "http://maps.googleapis.com/maps/api/geocode/json?address=" +
                 parse(message) + "&key=AIzaSyBv1lyZriQgX5uBMmht9VINapov5CWtpwo";
+        System.out.println(address);
+       String result = GET(address);
+        System.out.println(result);
+        /*if (result == "Did not work") {
+            //Debug
+        }
+        else {
+            try {
+                JSONObject json = new JSONObject(result);
 
-    startActivity(intent);
+
+            }  catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }*/
+        startActivity(intent);
     }
 
 
@@ -86,6 +82,58 @@ public class Text extends ActionBarActivity {
                 build.append("+");
             }
         return build.toString();
+    }
+
+
+    public static String GET(String link) throws MalformedURLException, IOException{
+
+        StringBuilder response = new StringBuilder();
+        URL url = new URL(link);
+
+        HttpURLConnection httpURLConn = (HttpURLConnection) url.openConnection();
+        try {
+            if (httpURLConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                BufferedReader input = new BufferedReader(new InputStreamReader(httpURLConn.getInputStream()), 8192);
+                String strLine = null;
+                while ((strLine = input.readLine()) != null) {
+                    response.append(strLine);
+                }
+                input.close();
+            }
+        } catch (IOException e){
+            //Do something
+            System.out.println("Error Here");
+        }
+        return response.toString();
+
+        /*InputStream inputStream = null;
+        String result = "";
+        try {
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
+            inputStream = httpResponse.getEntity().getContent();
+            if (inputStream != null) {result=convertInputStreamToString(inputStream);}
+            else {result = "Did not work";}
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());}
+
+        return result;*/
+    }
+
+
+
+    public static String convertInputStreamToString(InputStream input) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(input));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null) {
+            result += line;
+        }
+        input.close();
+        return result;
+
+
+
     }
 
     @Override
